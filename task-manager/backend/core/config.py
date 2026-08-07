@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     app_name: str = "Task Manager API"
     environment: str = "development"
     log_level: str = "INFO"
+    database_url: str = "sqlite:///./task_manager.db"
 
     model_config = SettingsConfigDict(env_prefix="TASK_MANAGER_", extra="ignore")
 

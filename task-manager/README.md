@@ -2,9 +2,9 @@
 
 This project is a Kubernetes learning lab that will grow incrementally into a production-quality Task Manager API.
 
-## Current milestone: Milestone 2 — Minimal FastAPI application
+## Current milestone: Milestone 3 — Task CRUD with SQLite
 
-Milestone 2 adds a minimal FastAPI application with two status endpoints and Uvicorn-compatible application startup.
+Milestone 3 adds a real Task resource with create, read, update, delete, and list operations backed by SQLite through SQLAlchemy.
 
 ## Project structure
 
@@ -14,16 +14,23 @@ task-manager/
 │   ├── app/
 │   │   └── main.py
 │   ├── api/
-│   │   └── routes.py
+│   │   ├── routes.py
+│   │   └── tasks.py
 │   ├── models/
+│   │   └── task.py
 │   ├── schemas/
+│   │   └── task.py
 │   ├── services/
+│   │   └── task_service.py
 │   ├── database/
+│   │   ├── base.py
+│   │   └── session.py
 │   ├── core/
 │   │   ├── config.py
 │   │   └── logging.py
 │   └── tests/
-│       └── test_status.py
+│       ├── test_status.py
+│       └── test_tasks.py
 ├── requirements.txt
 └── README.md
 ```
@@ -33,10 +40,10 @@ task-manager/
 - `backend/`: Contains the Python backend source tree and tests.
 - `backend/app/`: Contains the FastAPI application factory and runtime entry point used by Uvicorn.
 - `backend/api/`: Contains API routers and endpoint definitions.
-- `backend/models/`: Will contain SQLAlchemy ORM models that map Python classes to database tables.
-- `backend/schemas/`: Will contain Pydantic schemas for request validation and response serialization.
-- `backend/services/`: Will contain business logic separated from HTTP route handlers.
-- `backend/database/`: Will contain database engine, session, and migration-related configuration as the project grows.
+- `backend/models/`: Contains SQLAlchemy ORM models that map Python classes to database tables.
+- `backend/schemas/`: Contains Pydantic schemas for request validation and response serialization.
+- `backend/services/`: Contains business logic separated from HTTP route handlers.
+- `backend/database/`: Contains database metadata, engine, and session configuration.
 - `backend/core/`: Contains shared core configuration such as environment settings and logging.
 - `backend/tests/`: Contains automated tests for the backend.
 - `requirements.txt`: Defines Python package dependencies for local development and, later, Docker image builds.
@@ -44,10 +51,26 @@ task-manager/
 
 ## API endpoints
 
-| Method | Path | Response |
+| Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/` | `{ "status": "healthy" }` |
-| `GET` | `/health` | `{ "status": "ok" }` |
+| `GET` | `/` | Basic service status. |
+| `GET` | `/health` | Lightweight health check. |
+| `POST` | `/tasks` | Create a task. |
+| `GET` | `/tasks` | List tasks. |
+| `GET` | `/tasks/{id}` | Get one task. |
+| `PUT` | `/tasks/{id}` | Replace one task. |
+| `DELETE` | `/tasks/{id}` | Delete one task. |
+
+## Task model
+
+A task contains these fields:
+
+- `id`: Integer primary key assigned by the database.
+- `title`: Required task title.
+- `description`: Optional longer task description.
+- `completed`: Boolean completion flag.
+- `created_at`: UTC timestamp set when the task is created.
+- `updated_at`: UTC timestamp updated when the task changes.
 
 ## Running locally
 
@@ -59,18 +82,26 @@ uvicorn app.main:app --reload
 
 The application is then available at `http://127.0.0.1:8000`.
 
-## FastAPI startup
+## SQLAlchemy
 
-Uvicorn imports `app.main:app`. The `app` object is created by `create_app()`, which configures the FastAPI instance and includes the API router. The lifespan handler configures logging at startup and logs shutdown when the server exits.
+SQLAlchemy is the database toolkit used by this milestone. The `Task` ORM class describes the `tasks` table as Python code, while SQLAlchemy converts service operations into SQL statements for SQLite.
 
-## Routers
+## Sessions
 
-Routes live in `backend/api/routes.py` and are attached to the FastAPI application from `backend/app/main.py`. Keeping routes outside the application factory keeps endpoint definitions organized as the API grows.
+A database session is created per request by the `get_db()` dependency. Route handlers receive the session through FastAPI dependency injection, use it for one unit of work, and the dependency closes it after the request finishes.
 
-## Dependency injection
+## ORM
 
-FastAPI dependency injection is introduced through `Depends(get_settings)`. The settings dependency is cached and reads environment variables with the `TASK_MANAGER_` prefix, which will later map cleanly to Docker and Kubernetes environment variable injection.
+The ORM lets the application work with `Task` Python objects instead of manually writing SQL for every operation. This keeps CRUD logic readable while still preserving a clear database model.
+
+## Pydantic
+
+Pydantic schemas define the public API contract. Request schemas validate incoming JSON, and response schemas serialize ORM objects into safe JSON responses.
+
+## Docker learning path
+
+Docker will later copy this code into an image, install `requirements.txt`, run Uvicorn, and persist the SQLite file through a mounted volume during local container development.
 
 ## Kubernetes learning path
 
-This milestone still does not include Docker or Kubernetes files. Later, Docker will package this FastAPI application into an image, and Kubernetes will run that image in Pods behind Services and health checks.
+Kubernetes will later run this API in Pods. SQLite is useful for learning CRUD basics, but it stores data in a local file, which is not suitable for multi-replica production Pods. A later milestone will replace SQLite with PostgreSQL and persistent Kubernetes storage.
