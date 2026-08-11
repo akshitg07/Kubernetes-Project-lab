@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">Kubernetes Learning Lab</p>
+          <h1 id="page-title">Task Manager</h1>
+          <p class="hero-copy">
+            A clean interface for creating, tracking, and completing tasks while the backend grows into a cloud-native API.
+          </p>
+        </div>
+        <div class="status-card" aria-live="polite">
+          <span class="status-dot" id="api-status-dot"></span>
+          <div>
+            <p class="status-label">API status</p>
+            <strong id="api-status-text">Checking…</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="create-task-title">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Create</p>
+            <h2 id="create-task-title">New task</h2>
+          </div>
+        </div>
+        <form id="task-form" class="task-form">
+          <label>
+            <span>Title</span>
+            <input id="task-title" name="title" type="text" maxlength="200" required placeholder="Deploy the API locally" />
+          </label>
+          <label>
+            <span>Description</span>
+            <textarea id="task-description" name="description" rows="3" placeholder="Add useful context for this task"></textarea>
+          </label>
+          <button type="submit">Add task</button>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="task-list-title">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Track</p>
+            <h2 id="task-list-title">Tasks</h2>
+          </div>
+          <button class="secondary" id="refresh-tasks" type="button">Refresh</button>
+        </div>
+        <p id="task-message" class="message" role="status"></p>
+        <ul id="task-list" class="task-list" aria-label="Task list"></ul>
+      </section>
+    </main>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
